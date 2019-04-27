@@ -50,6 +50,18 @@ namespace DynamicData.Tests.Cache
         }
 
         [Fact]
+        public void UpdatingOneSourceOnlyProducesNoResultsDeferredSubscribe()
+        {
+            var person = new Person("Adult1", 50);
+            _source1.AddOrUpdate(person);
+
+            var results = CreateObservable().AsAggregator();
+
+            results.Messages.Count.Should().Be(0, "Should have no updates");
+            results.Data.Count.Should().Be(0, "Cache should have no items");
+        }
+
+        [Fact]
         public void UpdatingOneSourceOnlyProducesNoResults()
         {
             var person = new Person("Adult1", 50);

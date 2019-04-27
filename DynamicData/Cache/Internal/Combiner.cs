@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using DynamicData.Kernel;
 
 namespace DynamicData.Cache.Internal
@@ -30,13 +31,18 @@ namespace DynamicData.Cache.Internal
             var disposable = new CompositeDisposable();
             lock (_locker)
             {
+                var subscribables = new List<IObservable<IChangeSet<TObject, TKey>>>();
+
                 foreach (var item in source)
                 {
                     var cache = new Cache<TObject, TKey>();
                     _sourceCaches.Add(cache);
 
-                    var subsription = item.Subscribe(updates => Update(cache, updates));
-                    disposable.Add(subsription);
+                    subscribables.Add(item.Do(updates => Update(cache, updates)));
+                }
+                foreach(var item in subscribables)
+                {
+                    disposable.Add(item.Subscribe());
                 }
             }
             return disposable;
